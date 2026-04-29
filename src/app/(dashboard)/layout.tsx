@@ -47,8 +47,14 @@ export default function DashboardLayout({
                 <Link href="/tasks" className={linkClass("/tasks")}>
                   Tasks
                 </Link>
+                <Link href="/reports" className={linkClass("/reports")}>
+                  Reports
+                </Link>
                 <Link href="/activities" className={linkClass("/activities")}>
                   Activities
+                </Link>
+                <Link href="/settings" className={linkClass("/settings")}>
+                  Settings
                 </Link>
               </div>
             </div>

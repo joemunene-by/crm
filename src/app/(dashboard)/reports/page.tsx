@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from "recharts";
+import { SkeletonStats, SkeletonChart } from "@/components/Skeletons";
 
 export default function ReportsPage() {
   const [stats, setStats] = useState({
@@ -81,7 +82,13 @@ export default function ReportsPage() {
       </div>
 
       {loading ? (
-        <p className="text-gray-500">Loading reports...</p>
+        <div className="space-y-6">
+          <SkeletonStats />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <SkeletonChart />
+            <SkeletonChart />
+          </div>
+        </div>
       ) : (
         <div className="space-y-6">
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">

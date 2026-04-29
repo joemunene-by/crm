@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Contact } from "@/types";
+import { SkeletonTable } from "@/components/Skeletons";
 
 export default function ContactsPage() {
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -99,7 +100,7 @@ export default function ContactsPage() {
 
       <div className="bg-white shadow overflow-hidden sm:rounded-md">
         {loading ? (
-          <p className="p-4 text-gray-500">Loading...</p>
+          <SkeletonTable rows={5} />
         ) : contacts.length === 0 ? (
           <p className="p-4 text-gray-500 text-sm">No contacts found. Try adjusting your search or add a new contact!</p>
         ) : (

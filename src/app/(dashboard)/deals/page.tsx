@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Deal } from "@/types";
+import { SkeletonTable } from "@/components/Skeletons";
 
 const stages = [
   { id: "lead", name: "Lead", color: "bg-gray-100" },

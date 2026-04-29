@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Company } from "@/types";
+import { SkeletonTable } from "@/components/Skeletons";
 
 export default function CompaniesPage() {
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -79,7 +80,7 @@ export default function CompaniesPage() {
 
       <div className="bg-white shadow overflow-hidden sm:rounded-md">
         {loading ? (
-          <p className="p-4 text-gray-500">Loading...</p>
+          <SkeletonTable rows={5} />
         ) : companies.length === 0 ? (
           <p className="p-4 text-gray-500 text-sm">No companies found. Add your first company!</p>
         ) : (

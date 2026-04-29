@@ -1,10 +1,27 @@
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+
+  const isActive = (path: string) => {
+    if (path === "/dashboard") {
+      return pathname === path;
+    }
+    return pathname.startsWith(path);
+  };
+
+  const linkClass = (path: string) =>
+    `inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
+      isActive(path)
+        ? "border-indigo-500 text-gray-900"
+        : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
+    }`;
+
   return (
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-white shadow-sm border-b">
@@ -15,35 +32,23 @@ export default function DashboardLayout({
                 <h1 className="text-xl font-bold text-indigo-600">CRM</h1>
               </div>
               <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-                <Link
-                  href="/dashboard"
-                  className="border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-                >
+                <Link href="/dashboard" className={linkClass("/dashboard")}>
                   Dashboard
                 </Link>
-                <Link
-                  href="/contacts"
-                  className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-                >
+                <Link href="/contacts" className={linkClass("/contacts")}>
                   Contacts
                 </Link>
-                <Link
-                  href="/companies"
-                  className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-                >
+                <Link href="/companies" className={linkClass("/companies")}>
                   Companies
                 </Link>
-                <Link
-                  href="/deals"
-                  className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-                >
+                <Link href="/deals" className={linkClass("/deals")}>
                   Deals
                 </Link>
-                <Link
-                  href="/tasks"
-                  className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-                >
+                <Link href="/tasks" className={linkClass("/tasks")}>
                   Tasks
+                </Link>
+                <Link href="/activities" className={linkClass("/activities")}>
+                  Activities
                 </Link>
               </div>
             </div>

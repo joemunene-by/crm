@@ -1,4 +1,8 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Deal } from "@/types";
 
 const stages = [
   { id: "lead", name: "Lead", color: "bg-gray-100" },
@@ -10,6 +14,30 @@ const stages = [
 ];
 
 export default function DealsPage() {
+  const [deals, setDeals] = useState<Deal[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [stageFilter, setStageFilter] = useState("");
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (search) params.set("search", search);
+    if (stageFilter) params.set("stage", stageFilter);
+
+    fetch(`/api/deals?${params.toString()}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setDeals(data);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [search, stageFilter]);
+
+  const dealsByStage = stages.map((stage) => ({
+    ...stage,
+    deals: deals.filter((deal) => deal.stage === stage.id),
+  }));
+
   return (
     <div>
       <div className="md:flex md:items-center md:justify-between mb-8">
@@ -28,11 +56,51 @@ export default function DealsPage() {
         </div>
       </div>
 
+      <div className="mb-6 flex flex-col sm:flex-row gap-4">
+        <div className="flex-1">
+          <input
+            type="text"
+            placeholder="Search deals..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          />
+        </div>
+        <div>
+          <select
+            value={stageFilter}
+            onChange={(e) => setStageFilter(e.target.value)}
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          >
+            <option value="">All Stages</option>
+            {stages.map((stage) => (
+              <option key={stage.id} value={stage.id}>{stage.name}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        {stages.map((stage) => (
-          <div key={stage.id} className={`${stage.color} rounded-lg p-4`}>
+        {dealsByStage.map((stage) => (
+          <div key={stage.id} className={`${stage.color} rounded-lg p-4 min-h-[200px]`}>
             <h3 className="text-sm font-medium text-gray-900 mb-3">{stage.name}</h3>
-            <p className="text-gray-500 text-sm">No deals</p>
+            {stage.deals.length === 0 ? (
+              <p className="text-gray-500 text-sm">No deals</p>
+            ) : (
+              <ul className="space-y-2">
+                {stage.deals.map((deal) => (
+                  <li key={deal.id}>
+                    <Link
+                      href={`/deals/${deal.id}`}
+                      className="block p-2 bg-white rounded shadow-sm hover:shadow-md transition-shadow"
+                    >
+                      <p className="text-sm font-medium text-gray-900 truncate">{deal.title}</p>
+                      <p className="text-xs text-gray-500">${deal.value.toLocaleString()}</p>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         ))}
       </div>

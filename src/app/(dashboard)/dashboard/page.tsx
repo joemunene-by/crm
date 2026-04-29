@@ -10,9 +10,12 @@ export default function DashboardPage() {
     activeDeals: 0,
     pendingTasks: 0,
     pipelineValue: 0,
+    wonDeals: 0,
+    lostDeals: 0,
   });
   const [recentContacts, setRecentContacts] = useState<Contact[]>([]);
   const [upcomingTasks, setUpcomingTasks] = useState<Task[]>([]);
+  const [dealsByStage, setDealsByStage] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -25,20 +28,39 @@ export default function DashboardPage() {
         const activeDeals = deals.filter((d: Deal) => d.status === "open");
         const pendingTasks = tasks.filter((t: Task) => t.status === "pending");
         const pipelineValue = activeDeals.reduce((sum: number, deal: Deal) => sum + deal.value, 0);
+        const wonDeals = deals.filter((d: Deal) => d.stage === "closed-won").length;
+        const lostDeals = deals.filter((d: Deal) => d.stage === "closed-lost").length;
+
+        const stageCount: Record<string, number> = {};
+        deals.forEach((deal: Deal) => {
+          stageCount[deal.stage] = (stageCount[deal.stage] || 0) + 1;
+        });
 
         setStats({
           totalContacts: contacts.length,
           activeDeals: activeDeals.length,
           pendingTasks: pendingTasks.length,
           pipelineValue,
+          wonDeals,
+          lostDeals,
         });
 
+        setDealsByStage(stageCount);
         setRecentContacts(contacts.slice(0, 5));
         setUpcomingTasks(pendingTasks.slice(0, 5));
         setLoading(false);
       })
       .catch(() => setLoading(false));
   }, []);
+
+  const stages = [
+    { id: "lead", name: "Lead", color: "bg-gray-500" },
+    { id: "qualified", name: "Qualified", color: "bg-blue-500" },
+    { id: "proposal", name: "Proposal", color: "bg-yellow-500" },
+    { id: "negotiation", name: "Negotiation", color: "bg-orange-500" },
+    { id: "closed-won", name: "Closed Won", color: "bg-green-500" },
+    { id: "closed-lost", name: "Closed Lost", color: "bg-red-500" },
+  ];
 
   return (
     <div>
@@ -134,7 +156,30 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <div className="bg-white shadow rounded-lg p-6">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Deals by Stage</h3>
+          {loading ? (
+            <p className="text-gray-500 text-sm">Loading...</p>
+          ) : (
+            <div className="space-y-3">
+              {stages.map((stage) => (
+                <div key={stage.id} className="flex items-center">
+                  <div className={`w-3 h-3 ${stage.color} rounded-full mr-3`}></div>
+                  <span className="text-sm text-gray-700 w-32">{stage.name}</span>
+                  <div className="flex-1 bg-gray-200 rounded-full h-4 ml-2">
+                    <div
+                      className={`${stage.color} h-4 rounded-full`}
+                      style={{ width: `${dealsByStage[stage.id] ? (dealsByStage[stage.id] / Math.max(...Object.values(dealsByStage), 1)) * 100 : 0}%` }}
+                    ></div>
+                  </div>
+                  <span className="text-sm text-gray-600 ml-3">{dealsByStage[stage.id] || 0}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         <div className="bg-white shadow rounded-lg p-6">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Recent Contacts</h3>
           {loading ? (
@@ -145,33 +190,44 @@ export default function DashboardPage() {
             <ul className="divide-y divide-gray-200">
               {recentContacts.map((contact) => (
                 <li key={contact.id} className="py-3">
-                  <p className="text-sm font-medium text-indigo-600">
+                  <Link href={`/contacts/${contact.id}`} className="text-sm font-medium text-indigo-600 hover:text-indigo-500">
                     {contact.firstName} {contact.lastName}
-                  </p>
+                  </Link>
                   <p className="text-sm text-gray-500">{contact.email}</p>
                 </li>
               ))}
             </ul>
           )}
         </div>
+      </div>
 
-        <div className="bg-white shadow rounded-lg p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Upcoming Tasks</h3>
-          {loading ? (
-            <p className="text-gray-500 text-sm">Loading...</p>
-          ) : upcomingTasks.length === 0 ? (
-            <p className="text-gray-500 text-sm">No tasks yet.</p>
-          ) : (
-            <ul className="divide-y divide-gray-200">
-              {upcomingTasks.map((task) => (
-                <li key={task.id} className="py-3">
-                  <p className="text-sm font-medium text-gray-900">{task.title}</p>
+      <div className="bg-white shadow rounded-lg p-6">
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Upcoming Tasks</h3>
+        {loading ? (
+          <p className="text-gray-500 text-sm">Loading...</p>
+        ) : upcomingTasks.length === 0 ? (
+          <p className="text-gray-500 text-sm">No tasks yet.</p>
+        ) : (
+          <ul className="divide-y divide-gray-200">
+            {upcomingTasks.map((task) => (
+              <li key={task.id} className="py-3 flex items-center justify-between">
+                <div>
+                  <Link href={`/tasks/${task.id}`} className="text-sm font-medium text-gray-900 hover:text-indigo-500">
+                    {task.title}
+                  </Link>
                   <p className="text-sm text-gray-500">Priority: {task.priority}</p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+                </div>
+                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                  task.priority === 'high' ? 'bg-red-100 text-red-800' :
+                  task.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                  'bg-green-100 text-green-800'
+                }`}>
+                  {task.priority}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );

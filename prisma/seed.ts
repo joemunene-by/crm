@@ -1,21 +1,26 @@
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
 async function main() {
   console.log("Seeding database...");
 
-  // Create sample user
+  // Create sample user with hashed password
+  const hashedPassword = await bcrypt.hash("demo123", 10);
+  
   const user = await prisma.user.upsert({
     where: { email: "demo@crm.com" },
     update: {},
     create: {
       email: "demo@crm.com",
       name: "Demo User",
-      password: "hashed_password", // In production, use bcrypt to hash
+      password: hashedPassword,
       role: "admin",
     },
   });
+
+  console.log("Created user:", user.email);
 
   // Create sample companies
   const company1 = await prisma.company.create({
@@ -39,6 +44,8 @@ async function main() {
       userId: user.id,
     },
   });
+
+  console.log("Created companies");
 
   // Create sample contacts
   const contact1 = await prisma.contact.create({
@@ -71,6 +78,8 @@ async function main() {
     },
   });
 
+  console.log("Created contacts");
+
   // Create sample deals
   await prisma.deal.create({
     data: {
@@ -100,6 +109,8 @@ async function main() {
     },
   });
 
+  console.log("Created deals");
+
   // Create sample tasks
   await prisma.task.create({
     data: {
@@ -125,6 +136,8 @@ async function main() {
     },
   });
 
+  console.log("Created tasks");
+
   // Create sample activities
   await prisma.activity.create({
     data: {
@@ -144,7 +157,9 @@ async function main() {
     },
   });
 
+  console.log("Created activities");
   console.log("Database seeded successfully!");
+  console.log("Demo credentials: demo@crm.com / demo123");
 }
 
 main()

@@ -1,36 +1,93 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CRM - High-End Customer Relationship Management
+
+A modern, full-featured CRM built with Next.js, TypeScript, Prisma, and PostgreSQL.
+
+## Features
+
+- **Contact Management**: Store and manage customer contacts with detailed information
+- **Company Management**: Track companies and their associated contacts
+- **Deals Pipeline**: Visual pipeline with stages (Lead → Qualified → Proposal → Negotiation → Closed)
+- **Task Management**: Create and track tasks with priorities and due dates
+- **Activity Tracking**: Log calls, emails, and meetings
+- **Dashboard**: Overview of key metrics and recent activities
+- **Authentication**: Secure login with NextAuth
+
+## Tech Stack
+
+- **Frontend**: Next.js 16, React 19, TypeScript
+- **Styling**: Tailwind CSS 4
+- **Database**: PostgreSQL with Prisma ORM
+- **Authentication**: NextAuth.js
+- **Validation**: Zod
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
+- Node.js 18+
+- PostgreSQL database
+- npm or yarn
+
+### Installation
+
+1. Clone the repository:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/joemunene-by/crm.git
+cd crm
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install dependencies:
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Set up environment variables:
+Create a `.env` file in the root directory:
+```env
+DATABASE_URL="postgresql://user:password@localhost:5432/crm?schema=public"
+NEXTAUTH_SECRET="your-secret-key-generate-with-openssl-rand-base64-32"
+NEXTAUTH_URL="http://localhost:3000"
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+4. Set up the database:
+```bash
+npx prisma migrate dev --name init
+```
 
-## Learn More
+5. (Optional) Seed the database with sample data:
+```bash
+npm run seed
+```
 
-To learn more about Next.js, take a look at the following resources:
+6. Start the development server:
+```bash
+npm run dev
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Open [http://localhost:3000](http://localhost:3000) with your browser.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Database Schema
 
-## Deploy on Vercel
+The CRM uses the following data models:
+- **User**: System users with authentication
+- **Contact**: Customer contacts with status tracking
+- **Company**: Company records with industry details
+- **Deal**: Sales opportunities with pipeline stages
+- **Task**: Action items with priorities
+- **Activity**: Interaction history (calls, emails, meetings)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## API Routes
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `GET/POST /api/contacts` - Manage contacts
+- `GET/POST /api/companies` - Manage companies
+- `GET/POST /api/deals` - Manage deals
+- `GET/POST /api/tasks` - Manage tasks
+- `GET/POST /api/activities` - Track activities
+
+## License
+
+MIT
+
+## Author
+
+**joemunene-by** - [GitHub](https://github.com/joemunene-by)

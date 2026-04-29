@@ -16,6 +16,7 @@ export default function ReportsPage() {
     avgDealSize: 0,
   });
   const [dealsByStage, setDealsByStage] = useState<Record<string, number>>({});
+  const [monthlyDeals, setMonthlyDeals] = useState<{ month: string; count: number; value: number }[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -36,6 +37,22 @@ export default function ReportsPage() {
           stageCount[deal.stage] = (stageCount[deal.stage] || 0) + 1;
         });
 
+        // Calculate monthly deals
+        const monthlyData: Record<string, { count: number; value: number }> = {};
+        deals.forEach((deal: any) => {
+          const month = new Date(deal.createdAt).toLocaleString('en', { month: 'short', year: 'numeric' });
+          if (!monthlyData[month]) {
+            monthlyData[month] = { count: 0, value: 0 };
+          }
+          monthlyData[month].count++;
+          monthlyData[month].value += deal.value;
+        });
+        const monthlyDeals = Object.entries(monthlyData).map(([month, data]) => ({
+          month,
+          count: data.count,
+          value: data.value,
+        }));
+
         setStats({
           totalContacts: contacts.length,
           totalCompanies: companies.length,
@@ -47,6 +64,7 @@ export default function ReportsPage() {
           avgDealSize,
         });
         setDealsByStage(stageCount);
+        setMonthlyDeals(monthlyDeals);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -140,7 +158,27 @@ export default function ReportsPage() {
                 </ResponsiveContainer>
               ) : (
                 <p className="text-gray-500 text-sm">No deal data yet.</p>
-              )}
+                )}
+              </div>
+
+              <div className="bg-white shadow rounded-lg p-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Deals by Month</h3>
+                {monthlyDeals.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={monthlyDeals}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Bar dataKey="count" fill="#8884d8" name="Number of Deals" />
+                      <Bar dataKey="value" fill="#82ca9d" name="Total Value ($)" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <p className="text-gray-500 text-sm">No deal data yet.</p>
+                )}
+              </div>
             </div>
 
             <div className="bg-white shadow rounded-lg p-6">

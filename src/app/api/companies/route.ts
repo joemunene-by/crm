@@ -7,27 +7,39 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search") || "";
     const industry = searchParams.get("industry");
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "10");
+    const skip = (page - 1) * limit;
 
     const where: any = {};
-
     if (search) {
       where.OR = [
         { name: { contains: search, mode: "insensitive" } },
         { industry: { contains: search, mode: "insensitive" } },
       ];
     }
+    if (industry) where.industry = industry;
 
-    if (industry) {
-      where.industry = industry;
-    }
+    const [companies, total] = await Promise.all([
+      prisma.company.findMany({
+        where,
+        include: { contacts: true, deals: true },
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limit,
+      }),
+      prisma.company.count({ where }),
+    ]);
 
-    const companies = await prisma.company.findMany({
-      where,
-      include: { contacts: true, deals: true },
-      orderBy: { createdAt: "desc" },
+    return NextResponse.json({
+      data: companies,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
     });
-
-    return NextResponse.json(companies);
   } catch (error) {
     console.error("Error fetching companies:", error);
     return NextResponse.json({ error: "Failed to fetch companies" }, { status: 500 });

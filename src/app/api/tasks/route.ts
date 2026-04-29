@@ -8,26 +8,40 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search") || "";
     const status = searchParams.get("status");
     const priority = searchParams.get("priority");
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "10");
+    const skip = (page - 1) * limit;
 
     const where: any = {};
-
     if (search) {
       where.OR = [
         { title: { contains: search, mode: "insensitive" } },
         { description: { contains: search, mode: "insensitive" } },
       ];
     }
-
     if (status) where.status = status;
     if (priority) where.priority = priority;
 
-    const tasks = await prisma.task.findMany({
-      where,
-      include: { contact: true, deal: true, user: true },
-      orderBy: { createdAt: "desc" },
-    });
+    const [tasks, total] = await Promise.all([
+      prisma.task.findMany({
+        where,
+        include: { contact: true, deal: true, user: true },
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limit,
+      }),
+      prisma.task.count({ where }),
+    ]);
 
-    return NextResponse.json(tasks);
+    return NextResponse.json({
+      data: tasks,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
   } catch (error) {
     console.error("Error fetching tasks:", error);
     return NextResponse.json({ error: "Failed to fetch tasks" }, { status: 500 });

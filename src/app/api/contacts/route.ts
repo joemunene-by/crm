@@ -7,9 +7,11 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search") || "";
     const status = searchParams.get("status");
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "10");
+    const skip = (page - 1) * limit;
 
     const where: any = {};
-
     if (search) {
       where.OR = [
         { firstName: { contains: search, mode: "insensitive" } },
@@ -18,18 +20,28 @@ export async function GET(request: NextRequest) {
         { company: { contains: search, mode: "insensitive" } },
       ];
     }
+    if (status) where.status = status;
 
-    if (status) {
-      where.status = status;
-    }
+    const [contacts, total] = await Promise.all([
+      prisma.contact.findMany({
+        where,
+        include: { company: true },
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limit,
+      }),
+      prisma.contact.count({ where }),
+    ]);
 
-    const contacts = await prisma.contact.findMany({
-      where,
-      include: { company: true },
-      orderBy: { createdAt: "desc" },
+    return NextResponse.json({
+      data: contacts,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
     });
-
-    return NextResponse.json(contacts);
   } catch (error) {
     console.error("Error fetching contacts:", error);
     return NextResponse.json({ error: "Failed to fetch contacts" }, { status: 500 });

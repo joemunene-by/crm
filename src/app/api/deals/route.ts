@@ -7,27 +7,39 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search") || "";
     const stage = searchParams.get("stage");
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "10");
+    const skip = (page - 1) * limit;
 
     const where: any = {};
-
     if (search) {
       where.OR = [
         { title: { contains: search, mode: "insensitive" } },
         { notes: { contains: search, mode: "insensitive" } },
       ];
     }
+    if (stage) where.stage = stage;
 
-    if (stage) {
-      where.stage = stage;
-    }
+    const [deals, total] = await Promise.all([
+      prisma.deal.findMany({
+        where,
+        include: { contact: true, company: true, user: true },
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limit,
+      }),
+      prisma.deal.count({ where }),
+    ]);
 
-    const deals = await prisma.deal.findMany({
-      where,
-      include: { contact: true, company: true, user: true },
-      orderBy: { createdAt: "desc" },
+    return NextResponse.json({
+      data: deals,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
     });
-
-    return NextResponse.json(deals);
   } catch (error) {
     console.error("Error fetching deals:", error);
     return NextResponse.json({ error: "Failed to fetch deals" }, { status: 500 });

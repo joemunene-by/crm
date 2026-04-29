@@ -18,25 +18,43 @@ export default function DealsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [stageFilter, setStageFilter] = useState("");
+  const [pagination, setPagination] = useState({
+    total: 0,
+    page: 1,
+    totalPages: 1,
+  });
+
+  const limit = 10;
 
   useEffect(() => {
     const params = new URLSearchParams();
     if (search) params.set("search", search);
     if (stageFilter) params.set("stage", stageFilter);
+    params.set("page", pagination.page.toString());
+    params.set("limit", limit.toString());
 
     fetch(`/api/deals?${params.toString()}`)
       .then((res) => res.json())
       .then((data) => {
-        setDeals(data);
+        setDeals(data.data || []);
+        setPagination((prev) => ({
+          ...prev,
+          total: data.pagination?.total || 0,
+          totalPages: data.pagination?.totalPages || 1,
+        }));
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [search, stageFilter]);
+  }, [search, stageFilter, pagination.page]);
 
   const dealsByStage = stages.map((stage) => ({
     ...stage,
     deals: deals.filter((deal) => deal.stage === stage.id),
   }));
+
+  const handlePageChange = (newPage: number) => {
+    setPagination((prev) => ({ ...prev, page: newPage }));
+  };
 
   return (
     <div>
@@ -68,14 +86,20 @@ export default function DealsPage() {
             type="text"
             placeholder="Search deals..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPagination((prev) => ({ ...prev, page: 1 }));
+            }}
             className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           />
         </div>
         <div>
           <select
             value={stageFilter}
-            onChange={(e) => setStageFilter(e.target.value)}
+            onChange={(e) => {
+              setStageFilter(e.target.value);
+              setPagination((prev) => ({ ...prev, page: 1 }));
+            }}
             className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           >
             <option value="">All Stages</option>
@@ -110,6 +134,30 @@ export default function DealsPage() {
           </div>
         ))}
       </div>
+
+      {pagination.totalPages > 1 && (
+        <div className="mt-6 bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+          <div className="flex-1 flex justify-between">
+            <button
+              onClick={() => handlePageChange(pagination.page - 1)}
+              disabled={pagination.page === 1}
+              className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <span className="text-sm text-gray-700">
+              Page {pagination.page} of {pagination.totalPages}
+            </span>
+            <button
+              onClick={() => handlePageChange(pagination.page + 1)}
+              disabled={pagination.page === pagination.totalPages}
+              className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

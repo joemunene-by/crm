@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from "recharts";
 
 export default function ReportsPage() {
   const [stats, setStats] = useState({
@@ -13,6 +14,7 @@ export default function ReportsPage() {
     totalValue: 0,
     avgDealSize: 0,
   });
+  const [dealsByStage, setDealsByStage] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -28,6 +30,11 @@ export default function ReportsPage() {
         const totalValue = deals.reduce((sum: number, d: any) => sum + d.value, 0);
         const avgDealSize = deals.length > 0 ? totalValue / deals.length : 0;
 
+        const stageCount: Record<string, number> = {};
+        deals.forEach((deal: any) => {
+          stageCount[deal.stage] = (stageCount[deal.stage] || 0) + 1;
+        });
+
         setStats({
           totalContacts: contacts.length,
           totalCompanies: companies.length,
@@ -38,6 +45,7 @@ export default function ReportsPage() {
           totalValue,
           avgDealSize,
         });
+        setDealsByStage(stageCount);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -46,6 +54,21 @@ export default function ReportsPage() {
   const winRate = stats.totalDeals > 0 
     ? ((stats.wonDeals / (stats.wonDeals + stats.lostDeals)) * 100).toFixed(1)
     : "0";
+
+  const stageColors: Record<string, string> = {
+    lead: "#9CA3AF",
+    qualified: "#3B82F6",
+    proposal: "#F59E0B",
+    negotiation: "#F97316",
+    "closed-won": "#10B981",
+    "closed-lost": "#EF4444",
+  };
+
+  const pieData = Object.entries(dealsByStage).map(([name, value]) => ({
+    name: name.charAt(0).toUpperCase() + name.slice(1).replace("-", " "),
+    value,
+    color: stageColors[name] || "#9CA3AF",
+  }));
 
   return (
     <div>
@@ -62,36 +85,57 @@ export default function ReportsPage() {
       ) : (
         <div className="space-y-6">
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-5">
-                <dt className="text-sm font-medium text-gray-500 truncate">Total Contacts</dt>
-                <dd className="text-lg font-medium text-gray-900">{stats.totalContacts}</dd>
-              </div>
+            <div className="bg-white overflow-hidden shadow rounded-lg p-5">
+              <dt className="text-sm font-medium text-gray-500 truncate">Total Contacts</dt>
+              <dd className="text-lg font-medium text-gray-900">{stats.totalContacts}</dd>
             </div>
 
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-5">
-                <dt className="text-sm font-medium text-gray-500 truncate">Total Companies</dt>
-                <dd className="text-lg font-medium text-gray-900">{stats.totalCompanies}</dd>
-              </div>
+            <div className="bg-white overflow-hidden shadow rounded-lg p-5">
+              <dt className="text-sm font-medium text-gray-500 truncate">Total Companies</dt>
+              <dd className="text-lg font-medium text-gray-900">{stats.totalCompanies}</dd>
             </div>
 
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-5">
-                <dt className="text-sm font-medium text-gray-500 truncate">Total Deals</dt>
-                <dd className="text-lg font-medium text-gray-900">{stats.totalDeals}</dd>
-              </div>
+            <div className="bg-white overflow-hidden shadow rounded-lg p-5">
+              <dt className="text-sm font-medium text-gray-500 truncate">Total Deals</dt>
+              <dd className="text-lg font-medium text-gray-900">{stats.totalDeals}</dd>
             </div>
 
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-5">
-                <dt className="text-sm font-medium text-gray-500 truncate">Win Rate</dt>
-                <dd className="text-lg font-medium text-gray-900">{winRate}%</dd>
-              </div>
+            <div className="bg-white overflow-hidden shadow rounded-lg p-5">
+              <dt className="text-sm font-medium text-gray-500 truncate">Win Rate</dt>
+              <dd className="text-lg font-medium text-gray-900">{winRate}%</dd>
             </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-white shadow rounded-lg p-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Deals by Stage</h3>
+              {pieData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={pieData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      innerRadius={60}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {pieData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <p className="text-gray-500 text-sm">No deal data yet.</p>
+              )}
+            </div>
+
             <div className="bg-white shadow rounded-lg p-6">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Pipeline Summary</h3>
               <dl className="space-y-4">
@@ -110,23 +154,6 @@ export default function ReportsPage() {
                 <div className="flex justify-between">
                   <dt className="text-sm text-gray-500">Lost Deals</dt>
                   <dd className="text-sm font-medium text-red-600">{stats.lostDeals}</dd>
-                </div>
-              </dl>
-            </div>
-
-            <div className="bg-white shadow rounded-lg p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Task Summary</h3>
-              <dl className="space-y-4">
-                <div className="flex justify-between">
-                  <dt className="text-sm text-gray-500">Total Tasks</dt>
-                  <dd className="text-sm font-medium text-gray-900">{stats.totalTasks}</dd>
-                </div>
-                <div className="flex justify-between">
-                  <dt className="text-sm text-gray-500">Pending Tasks</dt>
-                  <dd className="text-sm font-medium text-yellow-600">
-                    {/* This would need API enhancement */}
-                    -
-                  </dd>
                 </div>
               </dl>
             </div>

@@ -7,16 +7,22 @@ import { Contact } from "@/types";
 export default function ContactsPage() {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
 
   useEffect(() => {
-    fetch("/api/contacts")
+    const params = new URLSearchParams();
+    if (search) params.set("search", search);
+    if (statusFilter) params.set("status", statusFilter);
+
+    fetch(`/api/contacts?${params.toString()}`)
       .then((res) => res.json())
       .then((data) => {
         setContacts(data);
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, []);
+  }, [search, statusFilter]);
 
   return (
     <div>
@@ -36,11 +42,36 @@ export default function ContactsPage() {
         </div>
       </div>
 
+      <div className="mb-6 flex flex-col sm:flex-row gap-4">
+        <div className="flex-1">
+          <input
+            type="text"
+            placeholder="Search contacts..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          />
+        </div>
+        <div>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          >
+            <option value="">All Statuses</option>
+            <option value="lead">Lead</option>
+            <option value="qualified">Qualified</option>
+            <option value="customer">Customer</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+      </div>
+
       <div className="bg-white shadow overflow-hidden sm:rounded-md">
         {loading ? (
           <p className="p-4 text-gray-500">Loading...</p>
         ) : contacts.length === 0 ? (
-          <p className="p-4 text-gray-500 text-sm">No contacts yet. Add your first contact!</p>
+          <p className="p-4 text-gray-500 text-sm">No contacts found. Try adjusting your search or add a new contact!</p>
         ) : (
           <ul className="divide-y divide-gray-200">
             {contacts.map((contact) => (

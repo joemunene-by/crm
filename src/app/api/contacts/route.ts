@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { createContactSchema } from "@/lib/validations";
 
 export async function GET(request: NextRequest) {
   try {
@@ -30,6 +31,37 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(contacts);
   } catch (error) {
+    console.error("Error fetching contacts:", error);
     return NextResponse.json({ error: "Failed to fetch contacts" }, { status: 500 });
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const validatedData = createContactSchema.parse(body);
+
+    const contact = await prisma.contact.create({
+      data: {
+        firstName: validatedData.firstName,
+        lastName: validatedData.lastName,
+        email: validatedData.email || null,
+        phone: validatedData.phone || null,
+        company: validatedData.company || null,
+        position: validatedData.position || null,
+        status: validatedData.status,
+        source: validatedData.source || null,
+        notes: validatedData.notes || null,
+        companyId: validatedData.companyId || null,
+      },
+    });
+
+    return NextResponse.json(contact, { status: 201 });
+  } catch (error: any) {
+    if (error.name === "ZodError") {
+      return NextResponse.json({ error: "Validation failed", details: error.errors }, { status: 400 });
+    }
+    console.error("Error creating contact:", error);
+    return NextResponse.json({ error: "Failed to create contact" }, { status: 500 });
   }
 }

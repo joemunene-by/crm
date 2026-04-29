@@ -1,0 +1,131 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          String    @default("user")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  contacts      Contact[]
+  deals         Deal[]
+  tasks         Task[]
+  activities    Activity[]
+  companies     Company[]
+}
+
+model Contact {
+  id           String   @id @default(cuid())
+  firstName    String
+  lastName     String
+  email        String?  @unique
+  phone        String?
+  company      String?
+  position     String?
+  status       String   @default("lead")
+  source       String?
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  userId       String?
+  user         User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  deals        Deal[]
+  activities   Activity[]
+  companyId    String?
+  company      Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+}
+
+model Company {
+  id          String   @id @default(cuid())
+  name        String
+  industry    String?
+  website     String?
+  address     String?
+  phone       String?
+  email       String?
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  contacts    Contact[]
+  deals       Deal[]
+}
+
+model Deal {
+  id          String   @id @default(cuid())
+  title       String
+  value       Float    @default(0)
+  stage       String   @default("lead")
+  probability Int      @default(0)
+  expectedCloseDate DateTime?
+  actualCloseDate DateTime?
+  status      String   @default("open")
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  contactId   String?
+  contact     Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+
+  companyId   String?
+  company     Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  activities  Activity[]
+}
+
+model Task {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  status      String   @default("pending")
+  priority    String   @default("medium")
+  dueDate     DateTime?
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  contactId   String?
+  contact     Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+
+  dealId      String?
+  deal        Deal?    @relation(fields: [dealId], references: [id], onDelete: SetNull)
+}
+
+model Activity {
+  id          String   @id @default(cuid())
+  type        String
+  description String
+  date        DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  contactId   String?
+  contact     Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+
+  dealId      String?
+  deal        Deal?    @relation(fields: [dealId], references: [id], onDelete: SetNull)
+}

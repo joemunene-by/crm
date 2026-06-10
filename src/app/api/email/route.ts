@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export async function POST(request: NextRequest) {
   try {
+    if (!process.env.RESEND_API_KEY) {
+      return NextResponse.json(
+        { error: "Email is not configured (RESEND_API_KEY missing)" },
+        { status: 503 }
+      );
+    }
+    // Constructed per-request: module-scope init crashes the build
+    // when the env var is absent.
+    const resend = new Resend(process.env.RESEND_API_KEY);
     const body = await request.json();
     const { to, subject, html, text } = body;
 

@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
 export default function ToastHandler() {
-  const [searchParams] = useSearchParams();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     const success = searchParams.get("success");

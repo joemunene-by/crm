@@ -111,3 +111,63 @@ export async function updateTask(id: string, formData: FormData) {
     redirect(`/tasks/${id}?error=Failed+to+update+task`);
   }
 }
+
+export async function updateCompany(id: string, formData: FormData) {
+  const name = formData.get("name") as string;
+  const industry = formData.get("industry") as string;
+  const website = formData.get("website") as string;
+  const phone = formData.get("phone") as string;
+  const email = formData.get("email") as string;
+  const address = formData.get("address") as string;
+  const notes = formData.get("notes") as string;
+
+  try {
+    await prisma.company.update({
+      where: { id },
+      data: {
+        name,
+        industry: industry || null,
+        website: website || null,
+        phone: phone || null,
+        email: email || null,
+        address: address || null,
+        notes: notes || null,
+      },
+    });
+
+    revalidatePath(`/companies/${id}`);
+  } catch (error) {
+    redirect(`/companies/${id}?error=Failed+to+update+company`);
+  }
+  redirect(`/companies/${id}?success=Company+updated+successfully`);
+}
+
+export async function updateDeal(id: string, formData: FormData) {
+  const title = formData.get("title") as string;
+  const value = formData.get("value") as string;
+  const stage = formData.get("stage") as string;
+  const probability = formData.get("probability") as string;
+  const expectedCloseDate = formData.get("expectedCloseDate") as string;
+  const status = formData.get("status") as string;
+  const notes = formData.get("notes") as string;
+
+  try {
+    await prisma.deal.update({
+      where: { id },
+      data: {
+        title,
+        value: parseFloat(value) || 0,
+        stage,
+        probability: parseInt(probability, 10) || 0,
+        expectedCloseDate: expectedCloseDate ? new Date(expectedCloseDate) : null,
+        status,
+        notes: notes || null,
+      },
+    });
+
+    revalidatePath(`/deals/${id}`);
+  } catch (error) {
+    redirect(`/deals/${id}?error=Failed+to+update+deal`);
+  }
+  redirect(`/deals/${id}?success=Deal+updated+successfully`);
+}

@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     const [contacts, total] = await Promise.all([
       prisma.contact.findMany({
         where,
-        include: { company: true },
+        
         orderBy: { createdAt: "desc" },
         skip,
         take: limit,

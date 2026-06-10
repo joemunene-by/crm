@@ -3,7 +3,20 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Contact, Deal, Task } from "@/types";
-import { SkeletonStats, SkeletonTable } from "@/components/Skeletons";
+import { SkeletonChart, SkeletonStats, SkeletonTable } from "@/components/Skeletons";
+
+const STAGE_COLORS: Record<string, string> = {
+  lead: "bg-gray-400",
+  qualified: "bg-blue-400",
+  proposal: "bg-yellow-400",
+  negotiation: "bg-orange-400",
+  won: "bg-green-500",
+  lost: "bg-red-400",
+};
+
+function getStageColor(stage: string): string {
+  return STAGE_COLORS[stage] ?? "bg-gray-400";
+}
 
 export default function DashboardPage() {
   const [stats, setStats] = useState({
@@ -13,6 +26,7 @@ export default function DashboardPage() {
     pipelineValue: 0,
     wonDeals: 0,
     lostDeals: 0,
+    avgDealSize: 0,
   });
   const [recentContacts, setRecentContacts] = useState<Contact[]>([]);
   const [upcomingTasks, setUpcomingTasks] = useState<Task[]>([]);
@@ -44,6 +58,9 @@ export default function DashboardPage() {
           pipelineValue,
           wonDeals,
           lostDeals,
+          avgDealSize: activeDeals.length
+            ? Math.round(pipelineValue / activeDeals.length)
+            : 0,
         });
 
         setDealsByStage(stageCount);
@@ -260,7 +277,7 @@ export default function DashboardPage() {
           )}
         </div>
       </div>
-      ))}
+      )}
     </div>
   );
 }

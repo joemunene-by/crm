@@ -58,4 +58,18 @@ export interface Company {
   createdAt: Date
   updatedAt: Date
   userId?: string | null
+  contacts?: Contact[]
+  deals?: Deal[]
+}
+
+export interface Activity {
+  id: string
+  type: string
+  description: string
+  date: Date
+  createdAt: Date
+  updatedAt: Date
+  userId?: string | null
+  contactId?: string | null
+  contact?: Contact | null
 }

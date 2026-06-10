@@ -3,9 +3,12 @@
 import { useState } from "react";
 import { toast } from "sonner";
 
-export default function EmailCompose({ 
-  to: string, 
-  onClose: () => void 
+export default function EmailCompose({
+  to,
+  onClose,
+}: {
+  to: string;
+  onClose: () => void;
 }) {
   const [subject, setSubject] = useState("");
   const [html, setHtml] = useState("");

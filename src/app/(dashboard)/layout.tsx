@@ -1,7 +1,10 @@
+"use client";
+
+import { Suspense } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import SearchBar from "@components/SearchBar";
-import ToastHandler from "@components/ToastHandler";
+import SearchBar from "@/components/SearchBar";
+import ToastHandler from "@/components/ToastHandler";
 
 export default function DashboardLayout({
   children,
@@ -26,7 +29,9 @@ export default function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <ToastHandler />
+      <Suspense fallback={null}>
+        <ToastHandler />
+      </Suspense>
       <nav className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
